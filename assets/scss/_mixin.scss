@@ -1,0 +1,220 @@
+@use "sass:math";
+@use "sass:map";
+
+
+//==========================================
+// color
+//==========================================
+
+$m_color: #333;
+$s1_color: #333;
+$s2_color: #333;
+
+//==========================================
+// Breakpoint
+//==========================================
+
+@mixin media($breakpoint) {
+
+  //#{}こちらを利用することで文字列を埋め込める
+  //map-getで連想配列を使用。第一引数に配列名、第二引数にキーをを指定
+  @media #{map-get($breakpoints, $breakpoint)} {
+    @content;
+  }
+}
+
+$breakpoints: (
+  sp: "only screen and (max-width: 767px)",
+  //767px以下
+  pc: "only screen and (min-width: 768px)",
+  //768px以上
+  pc-m: "only screen and (max-width: 1399px)",
+  pc-l: "only screen and (min-width: 1200px)",
+  //1200px以上
+  f_sp: 768px,
+  f_pc: 1100px,
+);
+
+//===========================================
+//	可変サイズmixinその1
+//===========================================
+:root {
+  --vw: 1vw;
+}
+
+// Width
+$base: 750;
+$basePc: 1200;
+//ある数字が全体に対してどのくらいの割合か算出するには,,,ある数字/全体＊100で出せる。その単位をvwに変換するだけ
+//ある数字が大きくなれば基準値に対しての割合が増えるため画面幅に応じてサイズを可変にできる
+//算出したい値($number)を基準値で割って、算出したい値が基準値($base)に対してどのくらいの割合か算出
+//上記の算出値に100をかけて%にする
+//%の値に1vw(--vw)をかけることで数値は変えず単位をvwに変換
+//$basePc: 1200; $number:240を例にすると
+//算出したい値(対象を画面幅1200の時に240pxにしたい=240px)を基準値(1200)に対して割る
+//そうすると　20% = 20vwという回答が出る
+
+// VW
+@function getvw($number) {
+  @return calc($number / $base * 100 * var(--vw));
+}
+
+@function getvwPc($number) {
+  @return calc($number / $basePc * 100 * var(--vw));
+}
+
+//以下を使用することでスクロールバーのが表示された際のvwの値を常にスクロールバーを含まない値にできる
+// const setScrollbarWidth = () => {
+//   const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+//   // カスタムプロパティの値を更新する
+//   document.documentElement.style.setProperty('--scrollbar', `${scrollbarWidth}px`);
+// };
+
+// // 表示されたとき
+// window.addEventListener('load', setScrollbarWidth);
+// // リサイズしたとき
+// window.addEventListener('resize', setScrollbarWidth);
+// @function getvwXl($number) {
+//   @return $number / $baseXl * 100vw;
+// }
+
+// backgroud-sizeのショートコードには含められない
+
+//===========================================
+//	可変サイズmixinその2
+//===========================================
+
+//よくわからないので使用なし
+
+@function fluid($fontsize-l, $fontsize) {
+  @return clamp(#{$fontsize * 1px}, calc(#{$fontsize * 1px} + ((100vw - #{map-get($breakpoints, f_sp)}) * ((#{$fontsize-l} - #{$fontsize}) / (#{num(map-get($breakpoints, f_pc))} - #{num(map-get($breakpoints, f_sp))})))), #{$fontsize-l * 1px});
+}
+
+@function num($input) {
+  @return math.div($input, ($input * 0 + 1));
+}
+
+// 記入例 : font-size: fluid(16,13);
+
+//===========================================
+//	font-family
+//===========================================
+
+$font-sans: "游ゴシック体", YuGothic, "游ゴシック Medium", "Yu Gothic Medium", "游ゴシック", "Yu Gothic", sans-serif;
+$font-serif: "游明朝体", "Yu Mincho", YuMincho, serif;
+
+//===========================================
+//	center
+//===========================================
+
+@mixin center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  text-align: center;
+}
+
+//===========================================
+//	over
+//===========================================
+@mixin over {
+  transition: .3s;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+/*
+------------------------
+用途：個別にhover要素付けたい時用
+------------------------
+例）
+div {
+    width:100px;
+    height:100px;
+    @include hover;
+}
+*/
+
+//===========================================
+//	flex
+//===========================================
+
+@mixin flex($flex-justify, $flex-wrap) {
+  display: flex;
+  justify-content: map-get($flex-status, $flex-justify);
+  flex-wrap: map-get($flex-wraps, $flex-wrap);
+}
+
+$flex-status: (
+  s:flex-start,
+  c:center,
+  e:flex-end,
+  b:space-between,
+  a:space-around
+);
+$flex-wraps: (
+  w:wrap,
+  n:nowrap
+);
+
+/*
+------------------------
+用途：良く使うflexを1行に短縮
+------------------------
+例）
+div {
+    @include flex(b,w);
+}
+↑これは↓これを一行で書いた例
+div {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+*/
+
+//===========================================
+// Browser Hack
+//===========================================
+
+//firefoxにのみ適用したいスタイルを記述
+@mixin firefox {
+  @-moz-document url-prefix() {
+    @content;
+  }
+}
+
+//Chromeにのみ適用したいスタイルを記述
+@mixin chrome {
+  @media screen and (-webkit-min-device-pixel-ratio: 0) {
+    @content;
+  }
+}
+
+//safariのみ適用したいスタイルを記述
+@mixin safari {
+
+  @at-root _::-webkit-full-page-media,
+  _:future,
+  :root & {
+    @content;
+  }
+}
+
+//===========================================
+// Imgr
+//===========================================
+//Webkitエンジンを搭載したブラウザ（主にGoogle Chrome）で画像のコントラストを最適化するスタイルを指定
+@mixin imgr {
+  @include chrome {
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  @include media(sp) {
+    image-rendering: auto;
+  }
+}
