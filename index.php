@@ -52,9 +52,24 @@ function getAllBlog()
     return $result;
 }
 
-
+//ブログデータ取得関数の実行
 $blogData = getAllBlog();
+
+
 //3.カテゴリー名を取得====//
+//引数：数字
+//返り値：categoryの文字列
+function getCategory($num)
+{
+    if ($num === 1) {
+        return 'ブログ';
+    } elseif ($num === 2) {
+        return '日常';
+    } else {
+        return 'その他';
+    }
+}
+
 
 
 
@@ -86,7 +101,7 @@ $blogData = getAllBlog();
             <tr>
                 <td><?php echo $data["id"] ?></td>
                 <td><?php echo $data["title"]  ?></td>
-                <td><?php echo $data["category"] ?></td>
+                <td><?php echo getCategory($data["category"]); ?></td>
             </tr>
         <?php endforeach; ?>
     </table>
